@@ -86,7 +86,20 @@ Validation.prototype = {
 			var useTitles = this.options.useTitles;
 			var callback = this.options.onElementValidate;
 			Form.getElements(this.form).each(function(input) { // Thanks Mike!
+
 				Event.observe(input, 'blur', function(ev) { Validation.validate(Event.element(ev),{useTitle : useTitles, onElementValidate : callback}); });
+				Event.observe(input, 'keyup', function(ev) { 
+                    var KEY_SHIFT_TAB = 16, 
+                        isTab = ev.keyCode === Event.KEY_TAB || 
+                                ev.keyCode === KEY_SHIFT_TAB;
+
+                    // Do not validate if just tabbed to and empty
+                    if (isTab && $F(input).empty()) { return; }
+
+                    Validation.validate(Event.element(ev),{useTitle : useTitles, onElementValidate : callback}); 
+                });
+				Event.observe(input, 'change', function(ev) { Validation.validate(Event.element(ev),{useTitle : useTitles, onElementValidate : callback}); });
+
 			});
 		}
 	},
@@ -136,7 +149,7 @@ Object.extend(Validation, {
 				var advice = Validation.getAdvice(name, elm);
 				if(advice == null) {
 					var errorMsg = useTitle ? ((elm && elm.title) ? elm.title : v.error) : v.error;
-					advice = '<div class="validation-advice" id="advice-' + name + '-' + Validation.getElmID(elm) +'" style="display:none">' + errorMsg + '</div>'
+					advice = '<span class="error" id="advice-' + name + '-' + Validation.getElmID(elm) +'" style="display:none">' + errorMsg + '</span>'
 					switch (elm.type.toLowerCase()) {
 						case 'checkbox':
 						case 'radio':
